@@ -17,6 +17,12 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: '18'  # Change this to your desired Node.js version
+      # Checkpoint - Pause and wait for user input
+    - name: Checkpoint
+      if: always()
+      run: |
+        echo "Workflow is paused. Use the following URL to resume:"
+        echo "${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}"
 
     - name: Install dependencies and build
       run: |
