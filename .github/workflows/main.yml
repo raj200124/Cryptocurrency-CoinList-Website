@@ -1,0 +1,41 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - staging  # Change this to your main branch name
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # You can choose a different runner, if needed
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18'  # Change this to your desired Node.js version
+
+    - name: Install dependencies and build
+      run: |
+        npm install -f
+        npm run build
+
+      # Checkpoint - Pause and wait for user input
+    - name: Checkpoint
+      if: always()
+      run: |
+        echo "Workflow is paused. Use the following URL to resume:"
+        echo "${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}"
+     
+    - name: rsync deployments
+      uses: burnett01/rsync-deployments@6.0.0
+      with:
+        switches: -avzr --delete
+        path: build/
+        remote_path: /var/www/html/
+        remote_host: ${{ secrets.PUBLIC_IP }}
+        remote_user: ubuntu
+        remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
